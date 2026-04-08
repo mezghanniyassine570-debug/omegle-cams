@@ -3,6 +3,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import Footer from '../components/Footer'
 import Link from 'next/link'
+import LegalModal from '../components/LegalModal'
 
 export default function Home() {
   const router = useRouter()
@@ -10,6 +11,7 @@ export default function Home() {
   const [interests, setInterests] = useState('')
   const [onlineCount, setOnlineCount] = useState(0)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const socketRef = useRef<any>(null)
 
   // Connect socket just to get online count
@@ -33,10 +35,13 @@ export default function Home() {
 
   const handleStart = () => {
     if (!acceptedTerms) {
-      alert('You must be 13+ and agree to the Terms of Service to start chatting.')
+      setIsModalOpen(true)
       return
     }
+    proceedToChat()
+  }
 
+  const proceedToChat = () => {
     const interestList = interests
       .split(',')
       .map(s => s.trim().toLowerCase())
@@ -169,22 +174,11 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Disclaimer & Checkbox */}
-          <div style={{ marginBottom: 24, padding: '12px', background: '#09090b', borderRadius: 10, border: '1px solid #27272a' }}>
-            <p style={{ color: '#a1a1aa', fontSize: 11, lineHeight: 1.4, marginBottom: 12 }}>
-              <strong>Disclaimer:</strong> You must be 13+ to use OmegleCams. All interactions are between users; the site owner is not responsible for any behavior or content. Use at your own risk.
+          {/* Quick Notice */}
+          <div style={{ marginBottom: 24 }}>
+            <p style={{ color: '#52525b', fontSize: 11, textAlign: 'center', lineHeight: 1.4 }}>
+              By clicking "Start Chatting", you agree to our <Link href="/terms" target="_blank" style={{ color: '#71717a', textDecoration: 'underline' }}>Terms</Link> & confirm you are 13+.
             </p>
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
-              <input 
-                type="checkbox" 
-                checked={acceptedTerms} 
-                onChange={e => setAcceptedTerms(e.target.checked)}
-                style={{ marginTop: 3, cursor: 'pointer', width: 16, height: 16 }}
-              />
-              <span style={{ color: '#e4e4e7', fontSize: 12, lineHeight: 1.4 }}>
-                I am 13+ and I agree to the <Link href="/terms" target="_blank" style={{ color: '#2563eb', textDecoration: 'none' }}>Terms of Service</Link> & <Link href="/privacy" target="_blank" style={{ color: '#2563eb', textDecoration: 'none' }}>Privacy Policy</Link>.
-              </span>
-            </label>
           </div>
 
           {/* Start button */}
@@ -199,14 +193,13 @@ export default function Home() {
               fontWeight: 800,
               fontSize: 16,
               letterSpacing: '0.04em',
-              background: acceptedTerms ? 'linear-gradient(135deg, #2563eb, #7c3aed)' : '#27272a',
-              color: acceptedTerms ? '#fff' : '#71717a',
-              boxShadow: acceptedTerms ? '0 4px 20px rgba(37, 99, 235, 0.35)' : 'none',
+              background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+              color: '#fff',
+              boxShadow: '0 4px 20px rgba(37, 99, 235, 0.35)',
               transition: 'all 0.12s',
-              opacity: acceptedTerms ? 1 : 0.7,
+              opacity: 1,
             }}
             onMouseEnter={e => {
-              if (!acceptedTerms) return
               const el = e.currentTarget as HTMLButtonElement
               el.style.transform = 'translateY(-1px)'
               el.style.boxShadow = '0 8px 28px rgba(37, 99, 235, 0.5)'
@@ -236,6 +229,16 @@ export default function Home() {
         </div>
 
         <Footer />
+
+        <LegalModal 
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onAccept={() => {
+            setAcceptedTerms(true)
+            setIsModalOpen(false)
+            proceedToChat()
+          }}
+        />
       </div>
     </>
   )

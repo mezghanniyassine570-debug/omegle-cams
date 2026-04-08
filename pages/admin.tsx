@@ -98,8 +98,11 @@ export default function AdminDashboard() {
           <h1 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '20px', textAlign: 'center' }}>Admin Access</h1>
           {loginError && (
             <div style={{
-              backgroundColor: '#450a0a', border: '1px solid #7f1d1d', color: '#fca5a5',
-              padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px', textAlign: 'center'
+              backgroundColor: loginError.includes('Configuration Error') ? '#7c2d12' : '#450a0a', 
+              border: loginError.includes('Configuration Error') ? '1px solid #d97706' : '1px solid #7f1d1d', 
+              color: loginError.includes('Configuration Error') ? '#fef3c7' : '#fca5a5',
+              padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px', textAlign: 'center',
+              fontWeight: 600
             }}>
               {loginError}
             </div>

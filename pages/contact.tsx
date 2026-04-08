@@ -38,17 +38,17 @@ export default function Contact() {
 
       <section style={{ marginBottom: '30px' }}>
         <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>General Enquiries</h2>
-        <p>For general questions or support, you can reach out to us at: <strong>support@omeglecams.com</strong></p>
+        <p>For all general questions, legal inquiries, or support, please reach out to us at: <strong>omegleadminuser@gmail.com</strong></p>
       </section>
 
       <section style={{ marginBottom: '30px' }}>
         <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>Abuse Reporting</h2>
-        <p>To report abuse, harassment, or prohibited content, please use the in-chat report button or email: <strong>report@omeglecams.com</strong></p>
+        <p>To report abuse, harassment, or prohibited content, please use the in-chat report button or email: <strong>omegleadminuser@gmail.com</strong></p>
       </section>
 
       <section style={{ marginBottom: '30px' }}>
-        <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>Privacy Inquiries</h2>
-        <p>For data deletion requests or privacy-related questions: <strong>privacy@omeglecams.com</strong></p>
+        <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>Privacy & Data</h2>
+        <p>For data deletion requests or privacy-related questions: <strong>omegleadminuser@gmail.com</strong></p>
       </section>
 
       <section style={{ marginBottom: '30px' }}>

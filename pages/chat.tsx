@@ -291,9 +291,12 @@ export default function ChatPage() {
   }, [])
 
   const handleReport = useCallback(() => {
-    // Simple confirmation before opening mail client
-    if (confirm('Would you like to report this user? This will open your email client.')) {
-      window.location.href = 'mailto:report@omeglecams.com?subject=OmegleCams Abuse Report'
+    const roomId = currentRoomRef.current
+    if (!roomId) return
+
+    if (confirm('Report this user for inappropriate behavior?')) {
+      socketRef.current?.emit('report-user', { roomId })
+      alert('User reported. Our moderators will review the session. Thank you for keeping OmegleCams safe.')
     }
   }, [])
 
@@ -394,6 +397,21 @@ export default function ChatPage() {
                 <ChatBox messages={messages} />
               </div>
             )}
+
+            {/* Prohibited Behavior Notice */}
+            <div style={{
+              padding: '6px 12px',
+              backgroundColor: '#3f1515',
+              borderTop: '1px solid #6b2020',
+              fontSize: '11px',
+              color: '#fca5a5',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}>
+              <span style={{ fontSize: '14px' }}>🚫</span>
+              <span><strong>No nudity, harassment, or illegal activity.</strong> Violations = immediate ban.</span>
+            </div>
 
             {/* Input */}
             <ChatInput

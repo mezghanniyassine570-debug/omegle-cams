@@ -132,9 +132,112 @@ function leaveRoom(io, socket) {
 // ─── Server Bootstrap ─────────────────────────────────────────────────────────
 
 app.prepare().then(() => {
-  const httpServer = createServer((req, res) => {
+const httpServer = createServer((req, res) => {
     handle(req, res, parse(req.url, true))
   })
+
+  // ─── Moderation & Safety ───────────────────────────────────────────────────
+  const fs = require('fs')
+  const path = require('path')
+
+  const MODERATION_FILE = path.join(__dirname, 'moderation.json')
+  let moderationData = { bans: [], reports: {}, logs: [] }
+
+  function loadModerationData() {
+    try {
+      if (fs.existsSync(MODERATION_FILE)) {
+        moderationData = JSON.parse(fs.readFileSync(MODERATION_FILE, 'utf8'))
+      }
+    } catch (e) {
+      console.error('[mod] Error loading moderation data:', e)
+    }
+  }
+
+  function saveModerationData() {
+    try {
+      fs.writeFileSync(MODERATION_FILE, JSON.stringify(moderationData, null, 2))
+    } catch (e) {
+      console.error('[mod] Error saving moderation data:', e)
+    }
+  }
+
+  loadModerationData()
+
+  const BAD_WORDS = [
+    'nigger', 'faggot', 'tranny', 'porn', 'sex', 'dick', 'cock', 'pussy', 'cunt',
+    'retard', 'kyś', 'kill yourself', 'hitler', 'nazi', 'chink', 'rape', 'pedo',
+    'child porn', 'cp', 'nudity', 'naked', 'show me', 'snapchat', 'horny'
+  ]
+  const wordFilterRegex = new RegExp(`\\b(${BAD_WORDS.join('|')})\\b`, 'gi')
+
+  function moderateContent(text) {
+    return text.replace(wordFilterRegex, match => '*'.repeat(match.length))
+  }
+
+  function getIp(socket) {
+    const forwarded = socket.handshake.headers['x-forwarded-for']
+    if (forwarded) return forwarded.split(',')[0].trim()
+    return socket.handshake.address
+  }
+
+  function isBanned(ip) {
+    return moderationData.bans.some(b => b.ip === ip && (!b.expires || b.expires > Date.now()))
+  }
+
+  function banUser(ip, reason = 'Repeated abuse reports') {
+    if (isBanned(ip)) return
+    moderationData.bans.push({
+      ip,
+      reason,
+      timestamp: Date.now(),
+      expires: null, // permanent for now
+    })
+    saveModerationData()
+    console.log(`[mod] BANNED IP: ${ip} | Reason: ${reason}`)
+  }
+
+  // Handle reporting logic
+  function reportUser(reporterSocket, roomId) {
+    const room = rooms.get(roomId)
+    if (!room) return
+
+    // Find the partner (the one being reported)
+    const members = Array.from(room.members)
+    const reportedSocketId = members.find(id => id !== reporterSocket.id)
+    if (!reportedSocketId) return
+
+    const reportedSocket = io.sockets.sockets.get(reportedSocketId)
+    const reportedIp = reportedSocket ? getIp(reportedSocket) : null
+
+    if (!reportedIp) return
+
+    // Log the report
+    const report = {
+      timestamp: Date.now(),
+      reportedIp,
+      reportedId: reportedSocketId,
+      reporterId: reporterSocket.id,
+      roomId,
+    }
+    moderationData.logs.unshift(report)
+    if (moderationData.logs.length > 500) moderationData.logs.pop()
+
+    // Increment report count
+    moderationData.reports[reportedIp] = (moderationData.reports[reportedIp] || 0) + 1
+    
+    console.log(`[mod] Report for ${reportedIp} (Total: ${moderationData.reports[reportedIp]})`)
+
+    // Auto-ban threshold check
+    if (moderationData.reports[reportedIp] >= 3) {
+      banUser(reportedIp, 'Automatic ban: Multiple abuse reports')
+      if (reportedSocket) {
+        reportedSocket.emit('banned', { reason: 'Your account has been suspended due to multiple reports of inappropriate behavior.' })
+        reportedSocket.disconnect(true)
+      }
+    }
+
+    saveModerationData()
+  }
 
   const io = new Server(httpServer, {
     cors: {
@@ -162,11 +265,23 @@ app.prepare().then(() => {
   // ─── Socket Events ──────────────────────────────────────────────────────────
 
   io.on('connection', (socket) => {
+    const ip = getIp(socket)
+    if (isBanned(ip)) {
+      if (dev) console.log(`[!] Banned IP attempted connection: ${ip}`)
+      socket.emit('banned', { reason: 'Your IP address is suspended from this service.' })
+      socket.disconnect(true)
+      return
+    }
+
     const clientCount = io.engine.clientsCount
-    if (dev) console.log(`[+] ${socket.id} connected | total: ${clientCount}`)
+    if (dev) console.log(`[+] ${socket.id} (IP: ${ip}) connected | total: ${clientCount}`)
 
     // ── Join Queue ────────────────────────────────────────────────────────────
     socket.on('join-queue', ({ mode = 'video', interests = [] } = {}) => {
+      if (isBanned(ip)) {
+        socket.disconnect(true)
+        return
+      }
       const queueKey = mode === 'text' ? 'text' : 'video'
       const queue = queues[queueKey]
 
@@ -235,7 +350,45 @@ app.prepare().then(() => {
       const myRoom = socketRoom.get(socket.id)
       if (myRoom !== roomId) return
 
-      socket.to(roomId).emit('chat-message', { text: trimmed })
+      // Apply Filter
+      const moderatedText = moderateContent(trimmed)
+
+      socket.to(roomId).emit('chat-message', { text: moderatedText })
+    })
+
+    // ── Moderation Events ───────────────────────────────────────────────────
+    socket.on('report-user', ({ roomId }) => {
+      reportUser(socket, roomId)
+    })
+
+    // Admin: Get all moderation data (requires password in real world, simplified here)
+    socket.on('admin-get-data', ({ password }) => {
+      if (password === process.env.ADMIN_PASSWORD) {
+        socket.emit('admin-data', {
+          ...moderationData,
+          online: io.engine.clientsCount,
+        })
+      }
+    })
+
+    socket.on('admin-ban-ip', ({ ip, reason, password }) => {
+      if (password === process.env.ADMIN_PASSWORD) {
+        banUser(ip, reason)
+        // Disconnect any active sockets with this IP
+        for (const [id, s] of io.sockets.sockets) {
+          if (getIp(s) === ip) {
+            s.emit('banned', { reason })
+            s.disconnect(true)
+          }
+        }
+      }
+    })
+
+    socket.on('admin-unban-ip', ({ ip, password }) => {
+      if (password === process.env.ADMIN_PASSWORD) {
+        moderationData.bans = moderationData.bans.filter(b => b.ip !== ip)
+        saveModerationData()
+      }
     })
 
     // ── Stats ─────────────────────────────────────────────────────────────────

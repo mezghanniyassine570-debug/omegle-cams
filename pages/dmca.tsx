@@ -56,7 +56,7 @@ export default function DMCA() {
 
       <section style={{ marginBottom: '30px' }}>
         <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>3. Contact Information</h2>
-        <p>DMCA complaints and copyright notices should be sent to: <strong>dmca@omeglecams.com</strong></p>
+        <p>DMCA complaints and copyright notices should be sent to: <strong>omegleadminuser@gmail.com</strong></p>
       </section>
 
       <section style={{ marginBottom: '30px' }}>

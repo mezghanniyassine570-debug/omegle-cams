@@ -3,12 +3,14 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import Footer from '../components/Footer'
 import Link from 'next/link'
+import AgeGate from '../components/AgeGate'
 
 export default function Home() {
   const router = useRouter()
   const [mode, setMode] = useState<'video' | 'text'>('video')
   const [interests, setInterests] = useState('')
   const [onlineCount, setOnlineCount] = useState(0)
+  const [isAgeAccepted, setIsAgeAccepted] = useState(false)
   const socketRef = useRef<any>(null)
 
   // Connect socket just to get online count
@@ -55,8 +57,11 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
+      <AgeGate onAccept={() => setIsAgeAccepted(true)} />
+
       <div style={{
         minHeight: '100dvh',
+        visibility: isAgeAccepted ? 'visible' : 'hidden',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

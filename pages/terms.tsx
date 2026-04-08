@@ -38,8 +38,8 @@ export default function Terms() {
       </section>
 
       <section style={{ marginBottom: '30px' }}>
-        <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>2. Age Restriction</h2>
-        <p>You must be at least 18 years of age to use this service. By using OmegleCams, you represent and warrant that you meet this age requirement. This platform is strictly for adults only.</p>
+        <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>2. Strict Age Requirement (18+)</h2>
+        <p>You MUST be at least 18 years of age to use OmegleCams.com. This platform is strictly for adults only. Minors are strictly prohibited from accessing or using this service. By clicking through our age gate and using the Site, you represent and warrant that you are at least 18 years old.</p>
       </section>
 
       <section style={{ marginBottom: '30px' }}>
@@ -49,16 +49,17 @@ export default function Terms() {
       </section>
 
       <section style={{ marginBottom: '30px' }}>
-        <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>4. Prohibited Conduct</h2>
-        <p>You agree not to engage in any of the following prohibited activities:</p>
+        <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>4. Prohibited Conduct & Zero Tolerance</h2>
+        <p>We have a <strong>Zero Tolerance Policy</strong> for the following prohibited activities:</p>
         <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
-          <li>Illegal activity of any kind.</li>
-          <li>Harassment, bullying, or hate speech.</li>
-          <li>Sharing or broadcasting pornography or sexually explicit content.</li>
+          <li>Sexual content involving minors (will be reported to NCMEC/authorities).</li>
+          <li>Nudity, sexual acts, or sexually explicit content of any kind.</li>
+          <li>Harassment, bullying, hate speech, or exploitation.</li>
+          <li>Illegal activity or promotion of illegal acts.</li>
           <li>Spamming or sending unsolicited advertisements.</li>
-          <li>Sharing copyrighted material without explicit permission from the owner.</li>
-          <li>Impersonating others or misrepresenting your identity.</li>
+          <li>Sharing copyrighted material without permission.</li>
         </ul>
+        <p style={{ marginTop: '10px' }}>Violation of these rules will result in an immediate and permanent ban. We cooperate with law enforcement when required.</p>
       </section>
 
       <section style={{ marginBottom: '30px' }}>
@@ -73,7 +74,7 @@ export default function Terms() {
 
       <section style={{ marginBottom: '30px' }}>
         <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>7. Reporting Abuse</h2>
-        <p>If you encounter content or behavior that violates these terms, please report it immediately via the in-chat report button or by emailing <strong>report@omeglecams.com</strong>.</p>
+        <p>We actively take steps to prevent misuse and remove harmful users. If you encounter content or behavior that violates these terms, please report it immediately via the in-chat report button or by emailing <strong>omegleadminuser@gmail.com</strong>.</p>
       </section>
 
       <section style={{ marginBottom: '30px' }}>

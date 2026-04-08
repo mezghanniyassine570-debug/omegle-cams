@@ -146,12 +146,13 @@ const httpServer = createServer((req, res) => {
   const path = require('path')
 
   const MODERATION_FILE = path.join(__dirname, 'moderation.json')
-  let moderationData = { bans: [], reports: {}, logs: [] }
+  let moderationData = { bans: [], reports: {}, logs: [], visitors: [] }
 
   function loadModerationData() {
     try {
       if (fs.existsSync(MODERATION_FILE)) {
-        moderationData = JSON.parse(fs.readFileSync(MODERATION_FILE, 'utf8'))
+        const loaded = JSON.parse(fs.readFileSync(MODERATION_FILE, 'utf8'))
+        moderationData = { ...moderationData, ...loaded }
       }
     } catch (e) {
       console.error('[mod] Error loading moderation data:', e)
@@ -281,6 +282,27 @@ const httpServer = createServer((req, res) => {
     socket.connectedAt = Date.now()
     const clientCount = io.engine.clientsCount
     if (dev) console.log(`[+] ${socket.id} (IP: ${ip}) connected | total: ${clientCount}`)
+
+    // ── Record Visitor History ────────────────────────────────────────────────
+    if (ip) {
+      if (!moderationData.visitors) moderationData.visitors = []
+      
+      const existingIdx = moderationData.visitors.findIndex(v => v.ip === ip)
+      if (existingIdx !== -1) {
+        moderationData.visitors[existingIdx].lastSeen = Date.now()
+        moderationData.visitors[existingIdx].visits = (moderationData.visitors[existingIdx].visits || 1) + 1
+      } else {
+        moderationData.visitors.unshift({
+          ip,
+          firstSeen: Date.now(),
+          lastSeen: Date.now(),
+          visits: 1
+        })
+        // Limit to 1000 visitors to avoid file bloat
+        if (moderationData.visitors.length > 1000) moderationData.visitors.pop()
+      }
+      saveModerationData()
+    }
 
     // ── Join Queue ────────────────────────────────────────────────────────────
     socket.on('join-queue', ({ mode = 'video', interests = [] } = {}) => {

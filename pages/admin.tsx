@@ -262,6 +262,53 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* Visitor History */}
+        <div style={{ backgroundColor: '#18181b', borderRadius: '16px', border: '1px solid #27272a', padding: '24px', marginTop: '24px' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px', borderBottom: '1px solid #27272a', paddingBottom: '12px' }}>
+            Lifetime Visitor History
+            <span style={{ fontSize: '11px', background: '#27272a', padding: '2px 8px', borderRadius: '100px', color: '#a1a1aa', marginLeft: '10px' }}>
+              {data?.visitors?.length || 0} unique
+            </span>
+          </h2>
+          <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+              <thead>
+                <tr style={{ textAlign: 'left', color: '#71717a', borderBottom: '1px solid #27272a' }}>
+                  <th style={{ padding: '12px 8px' }}>IP Address</th>
+                  <th style={{ padding: '12px 8px' }}>Visits</th>
+                  <th style={{ padding: '12px 8px' }}>First Seen</th>
+                  <th style={{ padding: '12px 8px' }}>Last Seen</th>
+                  <th style={{ padding: '12px 8px', textAlign: 'right' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data?.visitors?.length > 0 ? (
+                  data.visitors.map((visitor: any, i: number) => (
+                    <tr key={i} style={{ borderBottom: '1px solid #27272a', color: '#e4e4e7' }}>
+                      <td style={{ padding: '12px 8px', fontFamily: 'monospace', color: '#fff' }}>{visitor.ip}</td>
+                      <td style={{ padding: '12px 8px' }}>{visitor.visits}</td>
+                      <td style={{ padding: '12px 8px', color: '#71717a', fontSize: '12px' }}>{new Date(visitor.firstSeen).toLocaleDateString()}</td>
+                      <td style={{ padding: '12px 8px', color: '#71717a', fontSize: '12px' }}>{new Date(visitor.lastSeen).toLocaleString()}</td>
+                      <td style={{ padding: '12px 8px', textAlign: 'right' }}>
+                        <button
+                          onClick={() => handleBan(visitor.ip)}
+                          style={{ padding: '4px 10px', background: '#18181b', border: '1px solid #7f1d1d', color: '#ef4444', borderRadius: '6px', fontSize: '11px', cursor: 'pointer' }}
+                        >
+                          Ban
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', padding: '40px 0', color: '#52525b' }}>No history recorded yet.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         {/* Global Stats or Search */}
         <div style={{ backgroundColor: '#18181b', borderRadius: '16px', border: '1px solid #27272a', padding: '24px', marginTop: '24px' }}>
              <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>Quick Ban via IP</h2>

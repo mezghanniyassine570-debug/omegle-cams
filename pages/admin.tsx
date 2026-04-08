@@ -109,7 +109,7 @@ export default function AdminDashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '40px' }}>
           {/* Recent Reports */}
           <div style={{ backgroundColor: '#18181b', borderRadius: '16px', border: '1px solid #27272a', padding: '24px' }}>
-            <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px', borderBottom: '1px solid #27272a', pb: '12px' }}>Recent Reports</h2>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px', borderBottom: '1px solid #27272a', paddingBottom: '12px' }}>Recent Reports</h2>
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
               {data?.logs?.length > 0 ? (
                 data.logs.map((log: any, i: number) => (
@@ -127,14 +127,14 @@ export default function AdminDashboard() {
                   </div>
                 ))
               ) : (
-                <p style={{ color: '#52525b', textAlign: 'center', py: '40px' }}>No reports logged yet.</p>
+                <p style={{ color: '#52525b', textAlign: 'center', padding: '40px 0' }}>No reports logged yet.</p>
               )}
             </div>
           </div>
 
           {/* Active Bans */}
           <div style={{ backgroundColor: '#18181b', borderRadius: '16px', border: '1px solid #27272a', padding: '24px' }}>
-            <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px', borderBottom: '1px solid #27272a', pb: '12px' }}>Banned IPs</h2>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px', borderBottom: '1px solid #27272a', paddingBottom: '12px' }}>Banned IPs</h2>
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
               {data?.bans?.length > 0 ? (
                 data.bans.map((ban: any, i: number) => (
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
                   </div>
                 ))
               ) : (
-                <p style={{ color: '#52525b', textAlign: 'center', py: '40px' }}>No active bans.</p>
+                <p style={{ color: '#52525b', textAlign: 'center', padding: '40px 0' }}>No active bans.</p>
               )}
             </div>
           </div>

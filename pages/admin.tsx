@@ -23,6 +23,11 @@ export default function AdminDashboard() {
         setData(res)
       })
 
+      socket.on('admin-error', (err: any) => {
+        alert(err.message)
+        setIsAuthorized(false)
+      })
+
       fetchData()
       const interval = setInterval(fetchData, 5000)
 

@@ -368,7 +368,7 @@ const httpServer = createServer((req, res) => {
 
     // Admin: Get all moderation data (requires password in real world, simplified here)
     socket.on('admin-get-data', ({ password }) => {
-      if (password === process.env.ADMIN_PASSWORD) {
+      if (process.env.ADMIN_PASSWORD && password === process.env.ADMIN_PASSWORD) {
         const waitingCount = queues.video.length + queues.text.length
         socket.emit('admin-data', {
           ...moderationData,
@@ -376,6 +376,8 @@ const httpServer = createServer((req, res) => {
           waiting: waitingCount,
           chatting: rooms.size * 2,
         })
+      } else {
+        socket.emit('admin-error', { message: 'Invalid Admin Password' })
       }
     })
 

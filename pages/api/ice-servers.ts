@@ -15,8 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const apiKey = process.env.METERED_API_KEY  // Server-side only (no NEXT_PUBLIC_ prefix)
 
-  const appName = process.env.METERED_APP_NAME || 'omegleyassine.metered.live'
-  
+  let appName = process.env.METERED_APP_NAME || 'omegleyassine.metered.live'
+  if (appName && !appName.includes('.')) {
+    appName = `${appName}.metered.live`
+  }
   try {
     const response = await fetch(
       `https://${appName}/api/v1/turn/credentials?apiKey=${apiKey}`,

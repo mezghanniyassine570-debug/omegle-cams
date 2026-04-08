@@ -6,6 +6,7 @@ import ChatBox, { type Message } from '../components/ChatBox'
 import ChatInput from '../components/ChatInput'
 import ControlBar from '../components/ControlBar'
 import WaitingScreen from '../components/WaitingScreen'
+import Footer from '../components/Footer'
 
 type ChatStatus = 'initializing' | 'waiting' | 'chatting' | 'disconnected'
 
@@ -289,6 +290,13 @@ export default function ChatPage() {
     }
   }, [])
 
+  const handleReport = useCallback(() => {
+    // Simple confirmation before opening mail client
+    if (confirm('Would you like to report this user? This will open your email client.')) {
+      window.location.href = 'mailto:report@omeglecams.com?subject=OmegleCams Abuse Report'
+    }
+  }, [])
+
   // ─── Render ───────────────────────────────────────────────────────────────
 
   const isChatting = status === 'chatting'
@@ -403,9 +411,12 @@ export default function ChatPage() {
           mode={mode}
           onNext={handleNext}
           onStop={handleStop}
-          onToggleMute={handleToggleMute}
           onToggleCamera={handleToggleCamera}
+          onReport={handleReport}
         />
+        <div style={{ flexShrink: 0, padding: '0 0 4px 0', background: '#09090b' }}>
+          <Footer />
+        </div>
       </div>
     </>
   )

@@ -18,7 +18,7 @@ export default class MyDocument extends Document {
             }}
           />
 
-          <link rel="icon" href="/favicon.png?v=1" />
+          <link rel="icon" href="/favicon.png?v=2" />
 
           {/* Google Fonts - Inter */}
           <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -368,7 +368,10 @@ const httpServer = createServer((req, res) => {
 
     // Admin: Get all moderation data (requires password in real world, simplified here)
     socket.on('admin-get-data', ({ password }) => {
-      if (process.env.ADMIN_PASSWORD && password === process.env.ADMIN_PASSWORD) {
+      const storedPass = (process.env.ADMIN_PASSWORD || '').trim()
+      const providedPass = (password || '').trim()
+
+      if (storedPass && providedPass === storedPass) {
         const waitingCount = queues.video.length + queues.text.length
         socket.emit('admin-data', {
           ...moderationData,
@@ -377,12 +380,18 @@ const httpServer = createServer((req, res) => {
           chatting: rooms.size * 2,
         })
       } else {
+        if (!storedPass) {
+          console.error('[mod] CRITICAL: ADMIN_PASSWORD is NOT set in environment variables!')
+        }
         socket.emit('admin-error', { message: 'Invalid Admin Password' })
       }
     })
 
     socket.on('admin-ban-ip', ({ ip, reason, password }) => {
-      if (password === process.env.ADMIN_PASSWORD) {
+      const storedPass = (process.env.ADMIN_PASSWORD || '').trim()
+      const providedPass = (password || '').trim()
+
+      if (storedPass && providedPass === storedPass) {
         banUser(ip, reason)
         // Disconnect any active sockets with this IP
         for (const [id, s] of io.sockets.sockets) {
@@ -395,7 +404,10 @@ const httpServer = createServer((req, res) => {
     })
 
     socket.on('admin-unban-ip', ({ ip, password }) => {
-      if (password === process.env.ADMIN_PASSWORD) {
+      const storedPass = (process.env.ADMIN_PASSWORD || '').trim()
+      const providedPass = (password || '').trim()
+
+      if (storedPass && providedPass === storedPass) {
         moderationData.bans = moderationData.bans.filter(b => b.ip !== ip)
         saveModerationData()
       }

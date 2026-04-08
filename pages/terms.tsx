@@ -39,7 +39,7 @@ export default function Terms() {
 
       <section style={{ marginBottom: '30px' }}>
         <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>2. Age Restriction</h2>
-        <p>You must be at least 13 years of age to use this service. By using OmegleCams, you represent and warrant that you meet this age requirement. If you are under 18, you should use this service only with the involvement of a parent or guardian.</p>
+        <p>You must be at least 18 years of age to use this service. By using OmegleCams, you represent and warrant that you meet this age requirement. This platform is strictly for adults only.</p>
       </section>
 
       <section style={{ marginBottom: '30px' }}>

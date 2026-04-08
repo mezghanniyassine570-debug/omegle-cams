@@ -50,7 +50,7 @@ export default function LegalModal({ isOpen, onAccept, onClose }: LegalModalProp
           {!showFull ? (
             <div style={{ color: '#d4d4d8', fontSize: '0.95rem', lineHeight: 1.6 }}>
               <ul style={{ paddingLeft: 20, marginBottom: 20 }}>
-                <li><strong>Age Restriction:</strong> You must be 13 or older.</li>
+                <li><strong>Age Restriction:</strong> You must be 18 or older.</li>
                 <li><strong>Responsibility:</strong> You are fully responsible for your own interactions.</li>
                 <li><strong>Conduct:</strong> No illegal activity, pornography, or harassment.</li>
                 <li><strong>Liability:</strong> Site owner is not responsible for any behavior or content.</li>
@@ -74,7 +74,7 @@ export default function LegalModal({ isOpen, onAccept, onClose }: LegalModalProp
                 ← Back to Summary
               </button>
               <h3 style={{ color: '#fff', marginBottom: 10 }}>Terms of Service</h3>
-              <p>By using OmegleCams.com, you agree to follow our rules. You must be 13+ years old. The service is provided "as is". The site owner has zero liability for any content shared or any actions taken by users. We do not monitor all interactions. You use the service at your own risk.</p>
+              <p>By using OmegleCams.com, you agree to follow our rules. You must be 18+ years old. The service is provided "as is". The site owner has zero liability for any content shared or any actions taken by users. We do not monitor all interactions. You use the service at your own risk.</p>
               <h3 style={{ color: '#fff', margin: '15px 0 10px' }}>Conduct</h3>
               <p>Prohibited: Illegal activities, hate speech, pornography, spam, and sharing copyrighted material without permission. We reserve the right to ban users at any time.</p>
               <h3 style={{ color: '#fff', margin: '15px 0 10px' }}>Privacy</h3>

@@ -6,6 +6,8 @@ export default function AdminDashboard() {
   const router = useRouter()
   const [password, setPassword] = useState('')
   const [isAuthorized, setIsAuthorized] = useState(false)
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
+  const [loginError, setLoginError] = useState('')
   const [data, setData] = useState<any>(null)
   const [stats, setStats] = useState<any>(null)
   const [connected, setConnected] = useState(false)
@@ -28,17 +30,26 @@ export default function AdminDashboard() {
 
     socket.on('admin-data', (res: any) => {
       setData(res)
+      setIsAuthorized(true)
+      setIsLoggingIn(false)
+      setLoginError('')
     })
 
     socket.on('admin-error', (err: any) => {
-      alert(err.message)
-      setIsAuthorized(false)
+      setLoginError(err.message)
+      setIsLoggingIn(false)
+      if (isAuthorized) {
+        setIsAuthorized(false)
+        alert(err.message)
+      }
     })
 
     const interval = setInterval(() => {
       socket.emit('get-stats')
-      if (isAuthorized && password) {
-        socket.emit('admin-get-data', { password })
+      if (isAuthorized) {
+        // We no longer need to send the password every time because the server
+        // now tracks 'socket.isAdmin' session state.
+        socket.emit('admin-get-data', { password: '' })
       }
     }, 5000)
 
@@ -54,8 +65,10 @@ export default function AdminDashboard() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    if (password) {
-      setIsAuthorized(true)
+    if (password && socketRef.current) {
+      setIsLoggingIn(true)
+      setLoginError('')
+      socketRef.current.emit('admin-get-data', { password })
     }
   }
 
@@ -83,21 +96,38 @@ export default function AdminDashboard() {
           border: '1px solid #27272a', width: '100%', maxWidth: '360px'
         }}>
           <h1 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '20px', textAlign: 'center' }}>Admin Access</h1>
+          {loginError && (
+            <div style={{
+              backgroundColor: '#450a0a', border: '1px solid #7f1d1d', color: '#fca5a5',
+              padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px', textAlign: 'center'
+            }}>
+              {loginError}
+            </div>
+          )}
           <input
             type="password"
             placeholder="Enter Admin Password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+                setPassword(e.target.value)
+                if (loginError) setLoginError('')
+            }}
+            disabled={isLoggingIn}
             style={{
               width: '100%', padding: '12px', background: '#09090b', border: '1px solid #27272a',
-              borderRadius: '8px', color: '#fff', marginBottom: '16px', outline: 'none'
+              borderRadius: '8px', color: '#fff', marginBottom: '16px', outline: 'none',
+              opacity: isLoggingIn ? 0.5 : 1
             }}
           />
-          <button style={{
-            width: '100%', padding: '12px', background: '#2563eb', border: 'none',
-            borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer'
-          }}>
-            Login
+          <button 
+            disabled={isLoggingIn}
+            style={{
+              width: '100%', padding: '12px', background: isLoggingIn ? '#1e3a8a' : '#2563eb', border: 'none',
+              borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: isLoggingIn ? 'not-allowed' : 'pointer',
+              transition: 'background 0.2s'
+            }}
+          >
+            {isLoggingIn ? 'Verifying...' : 'Login'}
           </button>
         </form>
       </div>
@@ -194,9 +224,43 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+        
+        {/* Active Connections */}
+        <div style={{ backgroundColor: '#18181b', borderRadius: '16px', border: '1px solid #27272a', padding: '24px', marginTop: '24px' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px', borderBottom: '1px solid #27272a', paddingBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Active Connections
+            <span style={{ fontSize: '11px', background: '#27272a', padding: '2px 8px', borderRadius: '100px', color: '#a1a1aa' }}>{data?.activeUsers?.length || 0}</span>
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+            {data?.activeUsers?.length > 0 ? (
+              data.activeUsers.map((user: any, i: number) => (
+                <div key={user.id} style={{ 
+                  backgroundColor: '#09090b', padding: '16px', borderRadius: '12px', border: '1px solid #27272a',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                }}>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>{user.ip}</div>
+                    <div style={{ fontSize: '11px', color: '#52525b' }}>ID: {user.id.slice(0, 8)}... • Online since {new Date(user.connectedAt).toLocaleTimeString()}</div>
+                  </div>
+                  <button
+                    onClick={() => handleBan(user.ip)}
+                    style={{ 
+                        padding: '6px 10px', background: 'transparent', border: '1px solid #450a0a', 
+                        color: '#ef4444', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' 
+                    }}
+                  >
+                    Quick Ban
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p style={{ color: '#52525b', textAlign: 'center', gridColumn: '1 / -1', padding: '20px 0' }}>No active visitors tracked.</p>
+            )}
+          </div>
+        </div>
 
         {/* Global Stats or Search */}
-        <div style={{ backgroundColor: '#18181b', borderRadius: '16px', border: '1px solid #27272a', padding: '24px' }}>
+        <div style={{ backgroundColor: '#18181b', borderRadius: '16px', border: '1px solid #27272a', padding: '24px', marginTop: '24px' }}>
              <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>Quick Ban via IP</h2>
              <div style={{ display: 'flex', gap: '12px' }}>
                 <input

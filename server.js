@@ -278,6 +278,7 @@ const httpServer = createServer((req, res) => {
       return
     }
 
+    socket.connectedAt = Date.now()
     const clientCount = io.engine.clientsCount
     if (dev) console.log(`[+] ${socket.id} (IP: ${ip}) connected | total: ${clientCount}`)
 
@@ -366,18 +367,34 @@ const httpServer = createServer((req, res) => {
       reportUser(socket, roomId)
     })
 
-    // Admin: Get all moderation data (requires password in real world, simplified here)
+    // Admin: Get all moderation data
     socket.on('admin-get-data', ({ password }) => {
       const storedPass = (process.env.ADMIN_PASSWORD || '').trim()
       const providedPass = (password || '').trim()
 
-      if (storedPass && providedPass === storedPass) {
+      const isFirstAuth = storedPass && providedPass === storedPass
+      
+      if (socket.isAdmin || isFirstAuth) {
+        if (isFirstAuth) socket.isAdmin = true
+
         const waitingCount = queues.video.length + queues.text.length
+        
+        // Gather all active connections
+        const activeUsers = []
+        for (const [id, s] of io.sockets.sockets) {
+          activeUsers.push({
+            id: id,
+            ip: getIp(s),
+            connectedAt: s.connectedAt || Date.now(), // Fallback if not tracked
+          })
+        }
+
         socket.emit('admin-data', {
           ...moderationData,
           online: io.engine.clientsCount,
           waiting: waitingCount,
           chatting: rooms.size * 2,
+          activeUsers: activeUsers.sort((a, b) => b.connectedAt - a.connectedAt)
         })
       } else {
         if (!storedPass) {
@@ -391,7 +408,7 @@ const httpServer = createServer((req, res) => {
       const storedPass = (process.env.ADMIN_PASSWORD || '').trim()
       const providedPass = (password || '').trim()
 
-      if (storedPass && providedPass === storedPass) {
+      if (socket.isAdmin || (storedPass && providedPass === storedPass)) {
         banUser(ip, reason)
         // Disconnect any active sockets with this IP
         for (const [id, s] of io.sockets.sockets) {
@@ -407,7 +424,7 @@ const httpServer = createServer((req, res) => {
       const storedPass = (process.env.ADMIN_PASSWORD || '').trim()
       const providedPass = (password || '').trim()
 
-      if (storedPass && providedPass === storedPass) {
+      if (socket.isAdmin || (storedPass && providedPass === storedPass)) {
         moderationData.bans = moderationData.bans.filter(b => b.ip !== ip)
         saveModerationData()
       }

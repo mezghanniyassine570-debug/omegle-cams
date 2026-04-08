@@ -7,34 +7,48 @@ export default function AdminDashboard() {
   const [password, setPassword] = useState('')
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [data, setData] = useState<any>(null)
+  const [stats, setStats] = useState<any>(null)
+  const [connected, setConnected] = useState(false)
   const socketRef = useRef<any>(null)
 
   useEffect(() => {
-    if (isAuthorized) {
-      const { getSocket } = require('../lib/socket')
-      const socket = getSocket()
-      socketRef.current = socket
+    const { getSocket } = require('../lib/socket')
+    const socket = getSocket()
+    socketRef.current = socket
 
-      const fetchData = () => {
+    setConnected(socket.connected)
+    socket.on('connect', () => setConnected(true))
+    socket.on('disconnect', () => setConnected(false))
+
+    // Public stats (no password needed)
+    socket.emit('get-stats')
+    socket.on('stats', (res: any) => {
+      setStats(res)
+    })
+
+    socket.on('admin-data', (res: any) => {
+      setData(res)
+    })
+
+    socket.on('admin-error', (err: any) => {
+      alert(err.message)
+      setIsAuthorized(false)
+    })
+
+    const interval = setInterval(() => {
+      socket.emit('get-stats')
+      if (isAuthorized && password) {
         socket.emit('admin-get-data', { password })
       }
+    }, 5000)
 
-      socket.on('admin-data', (res: any) => {
-        setData(res)
-      })
-
-      socket.on('admin-error', (err: any) => {
-        alert(err.message)
-        setIsAuthorized(false)
-      })
-
-      fetchData()
-      const interval = setInterval(fetchData, 5000)
-
-      return () => {
-        clearInterval(interval)
-        socket.off('admin-data')
-      }
+    return () => {
+      clearInterval(interval)
+      socket.off('stats')
+      socket.off('admin-data')
+      socket.off('admin-error')
+      socket.off('connect')
+      socket.off('disconnect')
     }
   }, [isAuthorized, password])
 
@@ -105,18 +119,26 @@ export default function AdminDashboard() {
             <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#fff' }}>Moderation Dashboard</h1>
             <p style={{ color: '#71717a' }}>Live tracking and abuse management</p>
           </div>
-          <div style={{ textAlign: 'right', display: 'flex', gap: '32px' }}>
-            <div>
-              <div style={{ fontSize: '24px', fontWeight: 800, color: '#22c55e' }}>{data?.online || 0}</div>
-              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#52525b' }}>Total</div>
+          <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: connected ? '#22c55e' : '#ef4444' }}></div>
+              <div style={{ fontSize: '11px', fontWeight: 600, color: connected ? '#22c55e' : '#ef4444', textTransform: 'uppercase' }}>
+                {connected ? 'Live' : 'Offline'}
+              </div>
             </div>
-            <div>
-              <div style={{ fontSize: '24px', fontWeight: 800, color: '#60a5fa' }}>{data?.waiting || 0}</div>
-              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#52525b' }}>Waiting</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '24px', fontWeight: 800, color: '#a78bfa' }}>{data?.chatting || 0}</div>
-              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#52525b' }}>Chatting</div>
+            <div style={{ display: 'flex', gap: '32px' }}>
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 800, color: '#22c55e' }}>{stats?.online || 0}</div>
+                <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#52525b' }}>Total</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 800, color: '#60a5fa' }}>{stats?.waiting || 0}</div>
+                <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#52525b' }}>Waiting</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 800, color: '#a78bfa' }}>{stats?.chatting || 0}</div>
+                <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#52525b' }}>Chatting</div>
+              </div>
             </div>
           </div>
         </div>

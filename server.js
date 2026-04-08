@@ -8,6 +8,11 @@ const { parse } = require('url')
 const next = require('next')
 const { Server } = require('socket.io')
 
+// ─── Load Environment Variables ─────────────────────────────────────────────
+// This ensures .env.local values (like ADMIN_PASSWORD) are available in server.js
+const { loadEnvConfig } = require('@next/env')
+loadEnvConfig(__dirname)
+
 const dev = process.env.NODE_ENV !== 'production'
 const hostname = process.env.HOSTNAME || 'localhost'
 const port = parseInt(process.env.PORT || '3000', 10)

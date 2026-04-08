@@ -399,8 +399,10 @@ const httpServer = createServer((req, res) => {
       } else {
         if (!storedPass) {
           console.error('[mod] CRITICAL: ADMIN_PASSWORD is NOT set in environment variables!')
+          socket.emit('admin-error', { message: 'Server Configuration Error: ADMIN_PASSWORD is not set in production.' })
+        } else {
+          socket.emit('admin-error', { message: 'Invalid Admin Password' })
         }
-        socket.emit('admin-error', { message: 'Invalid Admin Password' })
       }
     })
 

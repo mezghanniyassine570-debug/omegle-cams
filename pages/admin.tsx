@@ -85,6 +85,28 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleExport = () => {
+    if (!data?.visitors || data.visitors.length === 0) {
+      alert('No visitor data to export.')
+      return
+    }
+
+    const header = "OmegleCams Visitor History Export\nGenerated: " + new Date().toLocaleString() + "\n" + "-".repeat(50) + "\n\n"
+    const content = data.visitors.map((v: any) => 
+        `IP: ${v.ip.padEnd(20)} | Visits: ${String(v.visits).padEnd(5)} | First Seen: ${new Date(v.firstSeen).toLocaleString()} | Last Seen: ${new Date(v.lastSeen).toLocaleString()}`
+    ).join('\n')
+
+    const blob = new Blob([header + content], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `visitor_history_${new Date().toISOString().split('T')[0]}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   if (!isAuthorized) {
     return (
       <div style={{
@@ -264,11 +286,25 @@ export default function AdminDashboard() {
 
         {/* Visitor History */}
         <div style={{ backgroundColor: '#18181b', borderRadius: '16px', border: '1px solid #27272a', padding: '24px', marginTop: '24px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px', borderBottom: '1px solid #27272a', paddingBottom: '12px' }}>
-            Lifetime Visitor History
-            <span style={{ fontSize: '11px', background: '#27272a', padding: '2px 8px', borderRadius: '100px', color: '#a1a1aa', marginLeft: '10px' }}>
-              {data?.visitors?.length || 0} unique
-            </span>
+          <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px', borderBottom: '1px solid #27272a', paddingBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+                Lifetime Visitor History
+                <span style={{ fontSize: '11px', background: '#27272a', padding: '2px 8px', borderRadius: '100px', color: '#a1a1aa', marginLeft: '10px' }}>
+                {data?.visitors?.length || 0} unique
+                </span>
+            </div>
+            <button 
+                onClick={handleExport}
+                style={{
+                    padding: '6px 14px', background: '#09090b', border: '1px solid #27272a', 
+                    color: '#fff', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                    transition: 'border 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.borderColor = '#52525b'}
+                onMouseOut={(e) => e.currentTarget.style.borderColor = '#27272a'}
+            >
+                Export TXT
+            </button>
           </h2>
           <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>

@@ -298,8 +298,8 @@ const httpServer = createServer((req, res) => {
           lastSeen: Date.now(),
           visits: 1
         })
-        // Limit to 1000 visitors to avoid file bloat
-        if (moderationData.visitors.length > 1000) moderationData.visitors.pop()
+        // Limit to 5000 visitors to avoid file bloat while still tracking many users
+        if (moderationData.visitors.length > 5000) moderationData.visitors.pop()
       }
       saveModerationData()
     }

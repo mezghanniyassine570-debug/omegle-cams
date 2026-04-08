@@ -100,9 +100,19 @@ export default function AdminDashboard() {
             <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#fff' }}>Moderation Dashboard</h1>
             <p style={{ color: '#71717a' }}>Live tracking and abuse management</p>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '24px', fontWeight: 800, color: '#22c55e' }}>{data?.online || 0}</div>
-            <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#52525b' }}>Users Online</div>
+          <div style={{ textAlign: 'right', display: 'flex', gap: '32px' }}>
+            <div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: '#22c55e' }}>{data?.online || 0}</div>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#52525b' }}>Total</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: '#60a5fa' }}>{data?.waiting || 0}</div>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#52525b' }}>Waiting</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: '#a78bfa' }}>{data?.chatting || 0}</div>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#52525b' }}>Chatting</div>
+            </div>
           </div>
         </div>
 

@@ -411,6 +411,7 @@ export default function ChatPage() {
           mode={mode}
           onNext={handleNext}
           onStop={handleStop}
+          onToggleMute={handleToggleMute}
           onToggleCamera={handleToggleCamera}
           onReport={handleReport}
         />

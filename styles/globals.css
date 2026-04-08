@@ -1,0 +1,243 @@
+/* Global styles for the Omegle clone */
+/* The compiled Tailwind v4 utilities come from /public/app.css loaded via _document */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#__next {
+  height: 100%;
+  min-height: 100dvh;
+  background-color: #18181b;
+  color: #fff;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  /* Prevent bounce scroll on iOS */
+  overscroll-behavior: none;
+}
+
+/* Video elements */
+video {
+  display: block;
+  object-fit: cover;
+  background: #09090b;
+}
+
+/* ── Mobile responsive chat layout ───────────────────────── */
+
+/* On mobile: video on top, chat on bottom, stacked vertically */
+.chat-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* On desktop (768px+): side by side */
+@media (min-width: 768px) {
+  .chat-layout {
+    flex-direction: row;
+  }
+}
+
+/* Video panel fills available space */
+.video-panel-wrap {
+  position: relative;
+  overflow: hidden;
+  /* On mobile: 50% of the available height */
+  flex: 0 0 42vh;
+}
+
+@media (min-width: 768px) {
+  .video-panel-wrap {
+    flex: 1;
+    /* Reset height constraint */
+    height: auto;
+  }
+}
+
+/* Chat sidebar */
+.chat-sidebar {
+  display: flex;
+  flex-direction: column;
+  background: #18181b;
+  /* On mobile: fill remaining space */
+  flex: 1;
+  min-height: 0;
+  /* Border on mobile is top, on desktop is left */
+  border-top: 1px solid #27272a;
+}
+
+@media (min-width: 768px) {
+  .chat-sidebar {
+    width: min(360px, 38%);
+    flex: none;
+    border-top: none;
+    border-left: 1px solid #27272a;
+  }
+}
+
+/* Control bar — larger tap targets on mobile */
+.control-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  background: #09090b;
+  border-top: 1px solid #27272a;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .control-bar {
+    gap: 12px;
+    padding: 14px 20px;
+  }
+}
+
+/* Control buttons */
+.ctrl-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: #fff;
+  transition: background 0.15s, transform 0.1s, opacity 0.15s;
+  white-space: nowrap;
+  user-select: none;
+  /* Bigger tap target on mobile */
+  min-height: 40px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (min-width: 768px) {
+  .ctrl-btn {
+    padding: 9px 18px;
+    font-size: 13px;
+    min-height: auto;
+  }
+}
+
+.ctrl-btn:active {
+  transform: scale(0.94);
+}
+
+.ctrl-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Local video pip - smaller on mobile */
+.local-pip {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 80px;
+  height: 56px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #3f3f46;
+  background: #09090b;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+}
+
+@media (min-width: 768px) {
+  .local-pip {
+    bottom: 12px;
+    right: 12px;
+    width: 120px;
+    height: 80px;
+    border-radius: 10px;
+  }
+}
+
+.local-pip-label {
+  position: absolute;
+  bottom: 12px;
+  font-size: 10px;
+  color: #a1a1aa;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+}
+
+@media (min-width: 768px) {
+  .local-pip-label {
+    bottom: 16px;
+    font-size: 11px;
+  }
+}
+
+/* Top bar */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #18181b;
+  border-bottom: 1px solid #27272a;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .top-bar {
+    padding: 10px 16px;
+  }
+}
+
+/* Scrollbar */
+.chat-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 10px;
+}
+
+/* Pulsing waiting animation */
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 0.4; }
+  100% { transform: scale(0.8); opacity: 0.8; }
+}
+
+.pulse-ring {
+  animation: pulse-ring 1.8s ease-in-out infinite;
+}
+
+/* Fade-in for matched video */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fade-in 0.4s ease;
+}
+
+/* Smooth slide for messages */
+@keyframes slide-up {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.msg-in {
+  animation: slide-up 0.2s ease;
+}
+

@@ -7,7 +7,6 @@ import ChatInput from '../components/ChatInput'
 import ControlBar from '../components/ControlBar'
 import WaitingScreen from '../components/WaitingScreen'
 import Footer from '../components/Footer'
-import AgeGate from '../components/AgeGate'
 
 type ChatStatus = 'initializing' | 'waiting' | 'chatting' | 'disconnected'
 
@@ -419,7 +418,6 @@ export default function ChatPage() {
         <div style={{ flexShrink: 0, padding: '0 0 4px 0', background: '#09090b' }}>
           <Footer />
         </div>
-        <AgeGate />
       </div>
     </>
   )

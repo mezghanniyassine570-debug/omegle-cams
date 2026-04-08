@@ -3,7 +3,6 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import Footer from '../components/Footer'
 import Link from 'next/link'
-import AgeGate from '../components/AgeGate'
 
 export default function Home() {
   const router = useRouter()
@@ -171,7 +170,7 @@ export default function Home() {
           {/* Quick Notice */}
           <div style={{ marginBottom: 24 }}>
             <p style={{ color: '#52525b', fontSize: 11, textAlign: 'center', lineHeight: 1.4 }}>
-              By clicking "Start Chatting", you agree to our <Link href="/terms" target="_blank" style={{ color: '#71717a', textDecoration: 'underline' }}>Terms</Link> & confirm you are 18+.
+              By clicking "Start Chatting", you agree to our <Link href="/terms" target="_blank" style={{ color: '#71717a', textDecoration: 'underline' }}>Terms</Link>.
             </p>
           </div>
 
@@ -224,7 +223,6 @@ export default function Home() {
 
         <Footer />
 
-        <AgeGate />
       </div>
     </>
   )

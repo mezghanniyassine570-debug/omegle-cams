@@ -3,7 +3,6 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import Footer from '../components/Footer'
 import Link from 'next/link'
-import LegalModal from '../components/LegalModal'
 import AgeGate from '../components/AgeGate'
 
 export default function Home() {
@@ -11,8 +10,6 @@ export default function Home() {
   const [mode, setMode] = useState<'video' | 'text'>('video')
   const [interests, setInterests] = useState('')
   const [onlineCount, setOnlineCount] = useState(0)
-  const [acceptedTerms, setAcceptedTerms] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const socketRef = useRef<any>(null)
 
   // Connect socket just to get online count
@@ -35,10 +32,6 @@ export default function Home() {
   }, [])
 
   const handleStart = () => {
-    if (!acceptedTerms) {
-      setIsModalOpen(true)
-      return
-    }
     proceedToChat()
   }
 
@@ -232,16 +225,6 @@ export default function Home() {
         <Footer />
 
         <AgeGate />
-
-        <LegalModal 
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onAccept={() => {
-            setAcceptedTerms(true)
-            setIsModalOpen(false)
-            proceedToChat()
-          }}
-        />
       </div>
     </>
   )

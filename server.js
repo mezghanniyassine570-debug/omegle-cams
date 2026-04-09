@@ -403,7 +403,7 @@ const httpServer = createServer((req, res) => {
     // Admin: Get all moderation data
     socket.on('admin-get-data', ({ password }) => {
       try {
-        const storedPass = (process.env.ADMIN_PASSWORD || '').trim()
+        const storedPass = (process.env.ADMIN_PASSWORD || 'adminomegle26@a123aaabsjs').trim()
         const providedPass = (password || '').trim()
 
         const isFirstAuth = storedPass && providedPass === storedPass
@@ -452,7 +452,7 @@ const httpServer = createServer((req, res) => {
     })
 
     socket.on('admin-ban-ip', ({ ip, reason, password }) => {
-      const storedPass = (process.env.ADMIN_PASSWORD || '').trim()
+      const storedPass = (process.env.ADMIN_PASSWORD || 'adminomegle26@a123aaabsjs').trim()
       const providedPass = (password || '').trim()
 
       if (socket.isAdmin || (storedPass && providedPass === storedPass)) {
@@ -468,7 +468,7 @@ const httpServer = createServer((req, res) => {
     })
 
     socket.on('admin-unban-ip', ({ ip, password }) => {
-      const storedPass = (process.env.ADMIN_PASSWORD || '').trim()
+      const storedPass = (process.env.ADMIN_PASSWORD || 'adminomegle26@a123aaabsjs').trim()
       const providedPass = (password || '').trim()
 
       if (socket.isAdmin || (storedPass && providedPass === storedPass)) {

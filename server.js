@@ -181,9 +181,10 @@ const httpServer = createServer((req, res) => {
   }
 
   function getIp(socket) {
-    const forwarded = socket.handshake.headers['x-forwarded-for']
-    if (forwarded) return forwarded.split(',')[0].trim()
-    return socket.handshake.address
+    if (!socket || !socket.handshake) return '0.0.0.0';
+    const forwarded = socket.handshake.headers['x-forwarded-for'];
+    if (forwarded) return forwarded.split(',')[0].trim();
+    return socket.handshake.address || '0.0.0.0';
   }
 
   function isBanned(ip) {
@@ -204,45 +205,49 @@ const httpServer = createServer((req, res) => {
 
   // Handle reporting logic
   function reportUser(reporterSocket, roomId) {
-    const room = rooms.get(roomId)
-    if (!room) return
+    try {
+      const room = rooms.get(roomId)
+      if (!room) return
 
-    // Find the partner (the one being reported)
-    const members = Array.from(room.members)
-    const reportedSocketId = members.find(id => id !== reporterSocket.id)
-    if (!reportedSocketId) return
+      // Find the partner (the one being reported)
+      const members = Array.from(room.members)
+      const reportedSocketId = members.find(id => id !== reporterSocket.id)
+      if (!reportedSocketId) return
 
-    const reportedSocket = io.sockets.sockets.get(reportedSocketId)
-    const reportedIp = reportedSocket ? getIp(reportedSocket) : null
+      const reportedSocket = io.sockets.sockets.get(reportedSocketId)
+      const reportedIp = reportedSocket ? getIp(reportedSocket) : null
 
-    if (!reportedIp) return
+      if (!reportedIp) return
 
-    // Log the report
-    const report = {
-      timestamp: Date.now(),
-      reportedIp,
-      reportedId: reportedSocketId,
-      reporterId: reporterSocket.id,
-      roomId,
-    }
-    moderationData.logs.unshift(report)
-    if (moderationData.logs.length > 500) moderationData.logs.pop()
-
-    // Increment report count
-    moderationData.reports[reportedIp] = (moderationData.reports[reportedIp] || 0) + 1
-    
-    console.log(`[mod] Report for ${reportedIp} (Total: ${moderationData.reports[reportedIp]})`)
-
-    // Auto-ban threshold check
-    if (moderationData.reports[reportedIp] >= 3) {
-      banUser(reportedIp, 'Automatic ban: Multiple abuse reports')
-      if (reportedSocket) {
-        reportedSocket.emit('banned', { reason: 'Your account has been suspended due to multiple reports of inappropriate behavior.' })
-        reportedSocket.disconnect(true)
+      // Log the report
+      const report = {
+        timestamp: Date.now(),
+        reportedIp,
+        reportedId: reportedSocketId,
+        reporterId: reporterSocket.id,
+        roomId,
       }
-    }
+      moderationData.logs.unshift(report)
+      if (moderationData.logs.length > 500) moderationData.logs.pop()
 
-    saveModerationData()
+      // Increment report count
+      moderationData.reports[reportedIp] = (moderationData.reports[reportedIp] || 0) + 1
+      
+      console.log(`[mod] Report for ${reportedIp} (Total: ${moderationData.reports[reportedIp]})`)
+
+      // Auto-ban threshold check
+      if (moderationData.reports[reportedIp] >= 3) {
+        banUser(reportedIp, 'Automatic ban: Multiple abuse reports')
+        if (reportedSocket) {
+          reportedSocket.emit('banned', { reason: 'Your account has been suspended due to multiple reports of inappropriate behavior.' })
+          reportedSocket.disconnect(true)
+        }
+      }
+
+      saveModerationData()
+    } catch (e) {
+      console.error('[mod] Error processing report:', e)
+    }
   }
 
   const io = new Server(httpServer, {
@@ -272,12 +277,8 @@ const httpServer = createServer((req, res) => {
 
   io.on('connection', (socket) => {
     const ip = getIp(socket)
-    if (isBanned(ip)) {
-      if (dev) console.log(`[!] Banned IP attempted connection: ${ip}`)
-      socket.emit('banned', { reason: 'Your IP address is suspended from this service.' })
-      socket.disconnect(true)
-      return
-    }
+    // We no longer block the connection globally here. 
+    // This allows banned admins to still reach the /admin login screen.
 
     socket.connectedAt = Date.now()
     const clientCount = io.engine.clientsCount
@@ -285,29 +286,33 @@ const httpServer = createServer((req, res) => {
 
     // ── Record Visitor History ────────────────────────────────────────────────
     if (ip) {
-      if (!moderationData.visitors) moderationData.visitors = []
-      
-      const existingIdx = moderationData.visitors.findIndex(v => v.ip === ip)
-      if (existingIdx !== -1) {
-        moderationData.visitors[existingIdx].lastSeen = Date.now()
-        moderationData.visitors[existingIdx].visits = (moderationData.visitors[existingIdx].visits || 1) + 1
-      } else {
-        moderationData.visitors.unshift({
-          ip,
-          firstSeen: Date.now(),
-          lastSeen: Date.now(),
-          visits: 1
-        })
-        // Limit to 5000 visitors to avoid file bloat while still tracking many users
-        if (moderationData.visitors.length > 5000) moderationData.visitors.pop()
+      try {
+        if (!moderationData.visitors) moderationData.visitors = []
+        
+        const existingIdx = moderationData.visitors.findIndex(v => v.ip === ip)
+        if (existingIdx !== -1) {
+          moderationData.visitors[existingIdx].lastSeen = Date.now()
+          moderationData.visitors[existingIdx].visits = (moderationData.visitors[existingIdx].visits || 1) + 1
+        } else {
+          moderationData.visitors.unshift({
+            ip,
+            firstSeen: Date.now(),
+            lastSeen: Date.now(),
+            visits: 1
+          })
+          // Limit to 5000 visitors to avoid file bloat while still tracking many users
+          if (moderationData.visitors.length > 5000) moderationData.visitors.pop()
+        }
+        saveModerationData()
+      } catch (e) {
+        console.error('[mod] Visitor history error:', e)
       }
-      saveModerationData()
     }
 
     // ── Join Queue ────────────────────────────────────────────────────────────
     socket.on('join-queue', ({ mode = 'video', interests = [] } = {}) => {
-      if (isBanned(ip)) {
-        socket.disconnect(true)
+      if (isBanned(ip) && !socket.isAdmin) {
+        socket.emit('banned', { reason: 'Your IP address is suspended from this service.' })
         return
       }
       const queueKey = mode === 'text' ? 'text' : 'video'
@@ -381,6 +386,12 @@ const httpServer = createServer((req, res) => {
       // Apply Filter
       const moderatedText = moderateContent(trimmed)
 
+      if (isBanned(ip) && !socket.isAdmin) {
+        socket.emit('banned', { reason: 'Your IP address is suspended from this service.' })
+        socket.disconnect(true)
+        return
+      }
+
       socket.to(roomId).emit('chat-message', { text: moderatedText })
     })
 
@@ -391,40 +402,52 @@ const httpServer = createServer((req, res) => {
 
     // Admin: Get all moderation data
     socket.on('admin-get-data', ({ password }) => {
-      const storedPass = (process.env.ADMIN_PASSWORD || '').trim()
-      const providedPass = (password || '').trim()
+      try {
+        const storedPass = (process.env.ADMIN_PASSWORD || '').trim()
+        const providedPass = (password || '').trim()
 
-      const isFirstAuth = storedPass && providedPass === storedPass
-      
-      if (socket.isAdmin || isFirstAuth) {
-        if (isFirstAuth) socket.isAdmin = true
-
-        const waitingCount = queues.video.length + queues.text.length
+        const isFirstAuth = storedPass && providedPass === storedPass
         
-        // Gather all active connections
-        const activeUsers = []
-        for (const [id, s] of io.sockets.sockets) {
-          activeUsers.push({
-            id: id,
-            ip: getIp(s),
-            connectedAt: s.connectedAt || Date.now(), // Fallback if not tracked
-          })
-        }
+        if (socket.isAdmin || isFirstAuth) {
+          if (isFirstAuth) {
+            socket.isAdmin = true
+            console.log(`[mod] Admin authenticated: ${ip}`)
+          }
 
-        socket.emit('admin-data', {
-          ...moderationData,
-          online: io.engine.clientsCount,
-          waiting: waitingCount,
-          chatting: rooms.size * 2,
-          activeUsers: activeUsers.sort((a, b) => b.connectedAt - a.connectedAt)
-        })
-      } else {
-        if (!storedPass) {
-          console.error('[mod] CRITICAL: ADMIN_PASSWORD is NOT set in environment variables!')
-          socket.emit('admin-error', { message: 'Server Configuration Error: ADMIN_PASSWORD is not set in production.' })
+          const waitingCount = queues.video.length + queues.text.length
+          
+          // Gather all active connections (limit loop scope and add safety)
+          const activeUsers = []
+          if (io.sockets.sockets) {
+            for (const [id, s] of io.sockets.sockets) {
+               if (s) {
+                 activeUsers.push({
+                   id: id,
+                   ip: getIp(s),
+                   connectedAt: s.connectedAt || Date.now(),
+                 })
+               }
+            }
+          }
+
+          socket.emit('admin-data', {
+            ...moderationData,
+            online: io.engine.clientsCount,
+            waiting: waitingCount,
+            chatting: rooms.size * 2,
+            activeUsers: activeUsers.sort((a, b) => b.connectedAt - a.connectedAt).slice(0, 100) // Cap at 100 recent users
+          })
         } else {
-          socket.emit('admin-error', { message: 'Invalid Admin Password' })
+          if (!storedPass) {
+            console.error('[mod] CRITICAL: ADMIN_PASSWORD is NOT set in environment variables!')
+            socket.emit('admin-error', { message: 'Server Configuration Error: ADMIN_PASSWORD is not set in production.' })
+          } else {
+            socket.emit('admin-error', { message: 'Invalid Admin Password' })
+          }
         }
+      } catch (e) {
+        console.error('[mod] Admin login error:', e)
+        socket.emit('admin-error', { message: 'Internal Server Error during verification' })
       }
     })
 

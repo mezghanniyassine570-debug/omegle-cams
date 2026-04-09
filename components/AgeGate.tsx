@@ -77,7 +77,7 @@ export default function AgeGate({ onAccept }: AgeGateProps) {
           color: '#fff',
           letterSpacing: '-0.025em',
         }}>
-          Adults Only (18+)
+          it's not website for kids
         </h1>
 
         <p style={{
@@ -89,6 +89,19 @@ export default function AgeGate({ onAccept }: AgeGateProps) {
           OmegleCams is a platform intended for <strong style={{ color: '#fff' }}>adults only</strong>.
           By entering, you acknowledge that you may encounter user-generated content that is inappropriate
           or explicit.
+        </p>
+
+        <p style={{
+          fontSize: '14px',
+          fontWeight: 600,
+          color: '#ef4444',
+          marginBottom: '24px',
+          backgroundColor: '#3f1515',
+          padding: '12px',
+          borderRadius: '12px',
+          border: '1px solid #7f1d1d',
+        }}>
+          website owner is not responsible on any thing bad happen on the website
         </p>
 
         {/* Safety Warnings */}

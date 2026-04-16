@@ -180,6 +180,21 @@ const httpServer = createServer((req, res) => {
     return text.replace(wordFilterRegex, match => '*'.repeat(match.length))
   }
 
+  /**
+   * Injection Protection Helper
+   * Prevents XSS and other text-based injections by escaping HTML characters
+   */
+  function sanitize(text) {
+    if (typeof text !== 'string') return ''
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
+      .trim()
+  }
+
   function getIp(socket) {
     if (!socket || !socket.handshake) return '0.0.0.0';
     const forwarded = socket.handshake.headers['x-forwarded-for'];
@@ -278,7 +293,7 @@ const httpServer = createServer((req, res) => {
   io.on('connection', (socket) => {
     const ip = getIp(socket)
     // We no longer block the connection globally here. 
-    // This allows banned admins to still reach the /admin login screen.
+    // This allows banned admins to still reach the /owner26 login screen.
 
     socket.connectedAt = Date.now()
     const clientCount = io.engine.clientsCount
@@ -377,14 +392,14 @@ const httpServer = createServer((req, res) => {
     // ── Text Chat Relay ───────────────────────────────────────────────────────
     socket.on('chat-message', ({ roomId, text }) => {
       if (!text || typeof text !== 'string') return
-      const trimmed = text.trim().slice(0, 500) // max 500 chars
-      if (!trimmed) return
+      const sanitized = sanitize(text).slice(0, 500) // max 500 chars and escaped
+      if (!sanitized) return
 
       const myRoom = socketRoom.get(socket.id)
       if (myRoom !== roomId) return
 
       // Apply Filter
-      const moderatedText = moderateContent(trimmed)
+      const moderatedText = moderateContent(sanitized)
 
       if (isBanned(ip) && !socket.isAdmin) {
         socket.emit('banned', { reason: 'Your IP address is suspended from this service.' })
@@ -404,7 +419,7 @@ const httpServer = createServer((req, res) => {
     socket.on('admin-get-data', ({ password }) => {
       try {
         const storedPass = (process.env.ADMIN_PASSWORD || 'adminomegle26@a123aaabsjs').trim()
-        const providedPass = (password || '').trim()
+        const providedPass = (typeof password === 'string' ? password : '').trim()
 
         const isFirstAuth = storedPass && providedPass === storedPass
         
@@ -452,11 +467,13 @@ const httpServer = createServer((req, res) => {
     })
 
     socket.on('admin-ban-ip', ({ ip, reason, password }) => {
+      if (typeof ip !== 'string' || typeof password !== 'string') return
       const storedPass = (process.env.ADMIN_PASSWORD || 'adminomegle26@a123aaabsjs').trim()
-      const providedPass = (password || '').trim()
+      const providedPass = password.trim()
+      const sanitizedReason = sanitize(reason) || 'Repeated abuse reports'
 
       if (socket.isAdmin || (storedPass && providedPass === storedPass)) {
-        banUser(ip, reason)
+        banUser(ip, sanitizedReason)
         // Disconnect any active sockets with this IP
         for (const [id, s] of io.sockets.sockets) {
           if (getIp(s) === ip) {
@@ -468,8 +485,9 @@ const httpServer = createServer((req, res) => {
     })
 
     socket.on('admin-unban-ip', ({ ip, password }) => {
+      if (typeof ip !== 'string' || typeof password !== 'string') return
       const storedPass = (process.env.ADMIN_PASSWORD || 'adminomegle26@a123aaabsjs').trim()
-      const providedPass = (password || '').trim()
+      const providedPass = password.trim()
 
       if (socket.isAdmin || (storedPass && providedPass === storedPass)) {
         moderationData.bans = moderationData.bans.filter(b => b.ip !== ip)

@@ -165,14 +165,14 @@ export default function AdminDashboard() {
       padding: '40px 20px', fontFamily: 'Inter, sans-serif'
     }}>
       <Head>
-        <title>OmegleCams | Admin Dashboard</title>
+        <title>OmegleCams | Owner Dashboard</title>
       </Head>
 
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
           <div>
-            <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#fff' }}>Moderation Dashboard</h1>
-            <p style={{ color: '#71717a' }}>Live tracking and abuse management</p>
+            <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#fff' }}>Owner Dashboard</h1>
+            <p style={{ color: '#71717a' }}>Private management console</p>
           </div>
           <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
